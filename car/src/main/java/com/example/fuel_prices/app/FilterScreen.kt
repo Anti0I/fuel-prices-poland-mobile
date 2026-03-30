@@ -1,5 +1,3 @@
-+
-
 package com.example.fuel_prices.app
 
 import androidx.car.app.CarContext
@@ -9,7 +7,7 @@ import com.example.fuel_prices.data.FuelType
 
 class FilterScreen(
     carContext: CarContext,
-    private val mainScreen: MainMapScreen
+    private val viewModel: StationsViewModel
 ) : Screen(carContext) {
 
     override fun onGetTemplate(): Template {
@@ -19,15 +17,14 @@ class FilterScreen(
             "Cheapest PB95" to FuelType.PB95,
             "Cheapest Diesel" to FuelType.DIESEL,
             "Cheapest LPG" to FuelType.LPG,
-            "Clear Filter" to null
+            "Nearest (no filter)" to null
         )
 
         filters.forEach { (title, fuelType) ->
             val row = Row.Builder()
                 .setTitle(title)
                 .setOnClickListener {
-                    mainScreen.currentFilter = fuelType
-                    mainScreen.invalidate()
+                    viewModel.setFilter(fuelType)
                     screenManager.pop()
                 }
                 .build()

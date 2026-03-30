@@ -12,6 +12,7 @@ constraintlayout = "2.2.1"
 media = "1.6.0"
 carApp = "1.4.0"
 gson = "2.10.1"
+playServicesLocation = "21.3.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -26,6 +27,7 @@ androidx-media = { group = "androidx.media", name = "media", version.ref = "medi
 androidx-car-app = { group = "androidx.car.app", name = "app", version.ref = "carApp" }
 androidx-car-app-automotive = { group = "androidx.car.app", name = "app-automotive", version.ref = "carApp" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
+play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
