@@ -48,7 +48,11 @@ class MainMapScreen(
                             Place.Builder(
                                 CarLocation.create(station.lat, station.lng)
                             )
-                            .setMarker(PlaceMarker.Builder().build())
+                            .setMarker(
+                                PlaceMarker.Builder()
+                                    .setColor(CarColor.BLUE)
+                                    .build()
+                            )
                             .build()
                         )
                         .build()
