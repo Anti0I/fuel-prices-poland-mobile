@@ -17,7 +17,7 @@ class FilterScreen(
             "Cheapest PB95" to FuelType.PB95,
             "Cheapest Diesel" to FuelType.DIESEL,
             "Cheapest LPG" to FuelType.LPG,
-            "Nearest (no filter)" to null
+            "Nearest station despite fuel type" to null
         )
 
         filters.forEach { (title, fuelType) ->
