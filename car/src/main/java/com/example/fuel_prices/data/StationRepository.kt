@@ -28,25 +28,26 @@ class StationRepository(private val context: Context) {
     }
 
     fun getFilteredStations(fuelType: FuelType?, brand: String?): List<Station> {
-        val filtered = cachedStations.filter { station ->
-            val matchFuel = when (fuelType) {
-                FuelType.PB95 -> station.prices.pb95 != null
-                FuelType.DIESEL -> station.prices.diesel != null
-                FuelType.LPG -> station.prices.lpg != null
-                null -> true
+        return cachedStations
+            .filter { station ->
+                val fuelMatches = when (fuelType) {
+                    FuelType.PB95 -> station.prices.pb95 != null
+                    FuelType.DIESEL -> station.prices.diesel != null
+                    FuelType.LPG -> station.prices.lpg != null
+                    null -> true
+                }
+                val brandMatches = brand == null || station.brand == brand
+                fuelMatches && brandMatches
             }
-            val matchBrand = if (brand != null) station.brand == brand else true
-            matchFuel && matchBrand
-        }
-
-        val sorted = when (fuelType) {
-            FuelType.PB95 -> filtered.sortedBy { it.prices.pb95 }
-            FuelType.DIESEL -> filtered.sortedBy { it.prices.diesel }
-            FuelType.LPG -> filtered.sortedBy { it.prices.lpg }
-            null -> filtered
-        }
-
-        return sorted.take(6)
+            .let { filteredStations ->
+                when (fuelType) {
+                    FuelType.PB95 -> filteredStations.sortedBy { it.prices.pb95 }
+                    FuelType.DIESEL -> filteredStations.sortedBy { it.prices.diesel }
+                    FuelType.LPG -> filteredStations.sortedBy { it.prices.lpg }
+                    null -> filteredStations
+                }
+            }
+            .take(6)
     }
 
     /**
