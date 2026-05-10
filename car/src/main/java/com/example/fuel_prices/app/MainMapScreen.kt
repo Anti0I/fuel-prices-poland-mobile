@@ -15,9 +15,12 @@ class MainMapScreen(
         val stationsWithDist = viewModel.stations.value
         val location = viewModel.currentLocation.value
         val filter = viewModel.currentFilter.value
+        val loading = viewModel.isLoading.value
 
         val itemListBuilder = ItemList.Builder()
-            .setNoItemsMessage("No stations found.")
+            .setNoItemsMessage(
+                if (loading) "Loading stations..." else "No stations found."
+            )
 
         stationsWithDist.forEachIndexed { _, swd ->
             val station = swd.station
@@ -100,15 +103,22 @@ class MainMapScreen(
             .build()
 
         val title = when {
+            loading -> "Loading..."
             filter == null -> "Nearest Stations"
             else -> "Cheapest ${filter.name}"
         }
 
-        return PlaceListMapTemplate.Builder()
+        val templateBuilder = PlaceListMapTemplate.Builder()
             .setTitle(title)
-            .setItemList(itemListBuilder.build())
             .setActionStrip(actionStrip)
             .setAnchor(anchor)
-            .build()
+
+        if (loading && stationsWithDist.isEmpty()) {
+            templateBuilder.setLoading(true)
+        } else {
+            templateBuilder.setItemList(itemListBuilder.build())
+        }
+
+        return templateBuilder.build()
     }
 }
