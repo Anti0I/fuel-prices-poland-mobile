@@ -47,7 +47,8 @@ class FuelApiService(
             .addQueryParameter("limit", limit.toString())
             .build()
 
-        return executeRequest(url, object : TypeToken<List<Station>>() {}.type)
+        val response = executeRequest<StationsResponse>(url, StationsResponse::class.java)
+        return response.stations
     }
 
     /**
@@ -70,7 +71,8 @@ class FuelApiService(
         city?.let { urlBuilder.addQueryParameter("city", it) }
         voivodeship?.let { urlBuilder.addQueryParameter("voivodeship", it) }
 
-        return executeRequest(urlBuilder.build(), object : TypeToken<List<Station>>() {}.type)
+        val response = executeRequest<StationsResponse>(urlBuilder.build(), StationsResponse::class.java)
+        return response.stations
     }
 
     /**

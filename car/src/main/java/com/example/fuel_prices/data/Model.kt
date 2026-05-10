@@ -1,6 +1,15 @@
 package com.example.fuel_prices.data
 
 /**
+ * Response wrapper for /stations and /stations/near endpoints.
+ */
+data class StationsResponse(
+    val count: Int,
+    val currency: String? = null,
+    val stations: List<Station>
+)
+
+/**
  * Represents a single fuel station as returned by the API.
  * Used for both /stations and /stations/near endpoints.
  */
