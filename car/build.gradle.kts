@@ -43,6 +43,8 @@ dependencies {
     implementation(libs.androidx.car.app.automotive)
     implementation(libs.gson)
     implementation(libs.play.services.location)
+    implementation(libs.okhttp)
+    implementation(libs.kotlinx.coroutines.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
