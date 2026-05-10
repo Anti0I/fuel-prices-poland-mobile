@@ -41,6 +41,8 @@ class StationsViewModel(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    var onInvalidate: (() -> Unit)? = null
+
     private var refreshJob: Job? = null
 
     init {
@@ -80,6 +82,7 @@ class StationsViewModel(
 
         refreshJob = scope.launch {
             _isLoading.value = true
+            onInvalidate?.invoke()
             try {
                 val loc = _currentLocation.value
                 val filter = _currentFilter.value
@@ -98,6 +101,7 @@ class StationsViewModel(
                 Log.e(TAG, "Error refreshing stations", e)
             } finally {
                 _isLoading.value = false
+                onInvalidate?.invoke()
             }
         }
     }

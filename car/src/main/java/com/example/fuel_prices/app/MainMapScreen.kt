@@ -11,6 +11,12 @@ class MainMapScreen(
     private val viewModel: StationsViewModel
 ) : Screen(carContext) {
 
+    init {
+        viewModel.onInvalidate = {
+            invalidate()
+        }
+    }
+
     override fun onGetTemplate(): Template {
         val stationsWithDist = viewModel.stations.value
         val location = viewModel.currentLocation.value
