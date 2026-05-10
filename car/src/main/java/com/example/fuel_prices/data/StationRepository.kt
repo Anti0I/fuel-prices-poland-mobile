@@ -1,100 +1,20 @@
 package com.example.fuel_prices.data
 
-import android.content.Context
-import com.example.fuel_prices.R
-import com.google.gson.Gson
-import java.io.InputStreamReader
+import android.util.Log
 import kotlin.math.*
 
-class StationRepository(private val context: Context) {
-
-    private var cachedStations: List<Station> = emptyList()
-
-    init {
-        loadData()
-    }
-
-    private fun loadData() {
-        try {
-            val inputStream = context.resources.openRawResource(R.raw.mock_stations)
-            val reader = InputStreamReader(inputStream)
-            val response = Gson().fromJson(reader, MockResponse::class.java)
-            reader.close()
-            
-            cachedStations = response.cities.flatMap { it.stations }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-
-    fun getFilteredStations(fuelType: FuelType?, brand: String?): List<Station> {
-        return cachedStations
-            .filter { station ->
-                val fuelMatches = when (fuelType) {
-                    FuelType.PB95 -> station.prices.pb95 != null
-                    FuelType.DIESEL -> station.prices.diesel != null
-                    FuelType.LPG -> station.prices.lpg != null
-                    null -> true
-                }
-                val brandMatches = brand == null || station.brand == brand
-                fuelMatches && brandMatches
-            }
-            .let { filteredStations ->
-                when (fuelType) {
-                    FuelType.PB95 -> filteredStations.sortedBy { it.prices.pb95 }
-                    FuelType.DIESEL -> filteredStations.sortedBy { it.prices.diesel }
-                    FuelType.LPG -> filteredStations.sortedBy { it.prices.lpg }
-                    null -> filteredStations
-                }
-            }
-            .take(6)
-    }
-
-    /**
-     * Returns stations sorted by distance from the given coordinates,
-     * optionally filtered by fuel type, limited to [limit] results.
-     */
-    fun getStationsSortedByDistance(
-        lat: Double,
-        lng: Double,
-        fuelType: FuelType?,
-        limit: Int = 6
-    ): List<StationWithDistance> {
-        val filtered = cachedStations.filter { station ->
-            when (fuelType) {
-                FuelType.PB95 -> station.prices.pb95 != null
-                FuelType.DIESEL -> station.prices.diesel != null
-                FuelType.LPG -> station.prices.lpg != null
-                null -> true
-            }
-        }
-
-        return filtered
-            .map { station ->
-                StationWithDistance(
-                    station = station,
-                    distanceKm = haversineDistance(lat, lng, station.lat, station.lng)
-                )
-            }
-            .sortedWith(
-                if (fuelType != null) {
-                    // Primary sort by price, secondary by distance
-                    compareBy<StationWithDistance> {
-                        when (fuelType) {
-                            FuelType.PB95 -> it.station.prices.pb95
-                            FuelType.DIESEL -> it.station.prices.diesel
-                            FuelType.LPG -> it.station.prices.lpg
-                        }
-                    }.thenBy { it.distanceKm }
-                } else {
-                    // Sort by distance only
-                    compareBy { it.distanceKm }
-                }
-            )
-            .take(limit)
-    }
+/**
+ * Repository that fetches fuel station data from the remote API
+ * via [FuelApiService]. All methods are blocking and should be called
+ * from a background thread / coroutine with Dispatchers.IO.
+ */
+class StationRepository(
+    private val api: FuelApiService = FuelApiService()
+) {
 
     companion object {
+        private const val TAG = "StationRepository"
+
         /**
          * Calculates the great-circle distance between two GPS coordinates
          * using the Haversine formula. Returns distance in kilometers.
@@ -111,6 +31,87 @@ class StationRepository(private val context: Context) {
                     sin(dLng / 2).pow(2)
             val c = 2 * atan2(sqrt(a), sqrt(1 - a))
             return r * c
+        }
+    }
+
+    /**
+     * Returns filtered stations from the API, optionally filtered
+     * by fuel type and brand, sorted by price ascending.
+     */
+    fun getFilteredStations(fuelType: FuelType?, brand: String?): List<Station> {
+        return try {
+            api.fetchFilteredStations(
+                fuel = fuelType?.toApiParam(),
+                brand = brand,
+                sortBy = if (fuelType != null) "price_asc" else null
+            ).take(6)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to fetch filtered stations", e)
+            emptyList()
+        }
+    }
+
+    /**
+     * Returns stations sorted by distance from the given coordinates,
+     * optionally filtered by fuel type, limited to [limit] results.
+     * Uses the /stations/near API endpoint.
+     */
+    fun getStationsSortedByDistance(
+        lat: Double,
+        lng: Double,
+        fuelType: FuelType?,
+        limit: Int = 6
+    ): List<StationWithDistance> {
+        return try {
+            val stations = api.fetchStationsNear(
+                lat = lat,
+                lng = lng,
+                radius = 50.0,
+                limit = limit
+            )
+
+            stations.map { station ->
+                StationWithDistance(
+                    station = station,
+                    distanceKm = station.distance_km
+                        ?: haversineDistance(lat, lng, station.lat, station.lng)
+                )
+            }.let { list ->
+                if (fuelType != null) {
+                    list.filter { swd ->
+                        when (fuelType) {
+                            FuelType.PB95 -> swd.station.prices.pb95 != null
+                            FuelType.DIESEL -> swd.station.prices.diesel != null
+                            FuelType.LPG -> swd.station.prices.lpg != null
+                        }
+                    }.sortedWith(
+                        compareBy<StationWithDistance> {
+                            when (fuelType) {
+                                FuelType.PB95 -> it.station.prices.pb95
+                                FuelType.DIESEL -> it.station.prices.diesel
+                                FuelType.LPG -> it.station.prices.lpg
+                            }
+                        }.thenBy { it.distanceKm }
+                    )
+                } else {
+                    list.sortedBy { it.distanceKm }
+                }
+            }.take(limit)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to fetch nearby stations", e)
+            emptyList()
+        }
+    }
+
+    /**
+     * Fetches available filter options from the API.
+     */
+    fun getFilters(): FiltersResponse? {
+        return try {
+            api.fetchFilters()
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to fetch filters", e)
+            null
         }
     }
 }
