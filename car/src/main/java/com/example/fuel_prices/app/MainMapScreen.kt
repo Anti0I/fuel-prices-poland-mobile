@@ -4,7 +4,6 @@ import androidx.car.app.CarContext
 import androidx.car.app.CarToast
 import androidx.car.app.Screen
 import androidx.car.app.model.*
-import com.example.fuel_prices.data.StationWithDistance
 
 class MainMapScreen(
     carContext: CarContext,
@@ -22,6 +21,7 @@ class MainMapScreen(
         val location = viewModel.currentLocation.value
         val filter = viewModel.currentFilter.value
         val loading = viewModel.isLoading.value
+        val selectedStation = viewModel.selectedStation.value
 
         val itemListBuilder = ItemList.Builder()
             .setNoItemsMessage(
@@ -49,7 +49,7 @@ class MainMapScreen(
                 .setTitle(spannableTitle)
                 .addText(priceStr)
                 .setOnClickListener {
-                    screenManager.push(StationDetailScreen(carContext, swd))
+                    screenManager.push(StationDetailScreen(carContext, swd, viewModel))
                 }
                 .setMetadata(
                     Metadata.Builder()
@@ -59,7 +59,11 @@ class MainMapScreen(
                             )
                             .setMarker(
                                 PlaceMarker.Builder()
-                                    .setColor(CarColor.BLUE)
+                                    .setColor(
+                                        if (selectedStation?.name == station.name &&
+                                            selectedStation.brand == station.brand
+                                        ) CarColor.RED else CarColor.BLUE
+                                    )
                                     .build()
                             )
                             .build()
@@ -67,7 +71,7 @@ class MainMapScreen(
                         .build()
                 )
                 .build()
-            
+
             itemListBuilder.addItem(row)
         }
 
@@ -85,6 +89,7 @@ class MainMapScreen(
                 Action.Builder()
                     .setTitle("My Location")
                     .setOnClickListener {
+                        viewModel.setSelectedStation(null) // czyści zaznaczenie
                         viewModel.startLocationUpdates()
                         CarToast.makeText(
                             carContext,
@@ -97,19 +102,29 @@ class MainMapScreen(
             )
             .build()
 
-        // Set user's current location as the map anchor
-        val anchor = Place.Builder(
-            CarLocation.create(location.latitude, location.longitude)
-        )
-            .setMarker(
-                PlaceMarker.Builder()
-                    .setLabel("You")
-                    .build()
-            )
-            .build()
+        // Jeśli użytkownik wybrał stację z ekranu szczegółów, wycentruj mapę na niej
+        // W przeciwnym razie pokaż aktualną lokalizację użytkownika
+        val anchor = if (selectedStation != null) {
+            Place.Builder(CarLocation.create(selectedStation.lat, selectedStation.lng))
+                .setMarker(
+                    PlaceMarker.Builder()
+                        .setColor(CarColor.RED)
+                        .build()
+                )
+                .build()
+        } else {
+            Place.Builder(CarLocation.create(location.latitude, location.longitude))
+                .setMarker(
+                    PlaceMarker.Builder()
+                        .setLabel("You")
+                        .build()
+                )
+                .build()
+        }
 
         val title = when {
             loading -> "Loading..."
+            selectedStation != null -> "${selectedStation.brand} - ${selectedStation.name}"
             filter == null -> "Nearest Stations"
             else -> "Cheapest ${filter.name}"
         }

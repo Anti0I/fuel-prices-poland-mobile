@@ -5,6 +5,7 @@ import android.util.Log
 import com.example.fuel_prices.data.FuelType
 import com.example.fuel_prices.data.StationRepository
 import com.example.fuel_prices.data.StationWithDistance
+import com.example.fuel_prices.data.Station
 import com.example.fuel_prices.location.LocationHelper
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,6 +42,10 @@ class StationsViewModel(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    /** Stacja wybrana przez użytkownika — mapa wycentruje się na jej lokalizacji. */
+    private val _selectedStation = MutableStateFlow<Station?>(null)
+    val selectedStation: StateFlow<Station?> = _selectedStation.asStateFlow()
+
     var onInvalidate: (() -> Unit)? = null
 
     private var refreshJob: Job? = null
@@ -52,6 +57,12 @@ class StationsViewModel(
     fun setFilter(fuelType: FuelType?) {
         _currentFilter.value = fuelType
         refreshStations()
+    }
+
+    /** Ustawia wybraną stację jako cel na mapie. Null czyści wybór. */
+    fun setSelectedStation(station: Station?) {
+        _selectedStation.value = station
+        onInvalidate?.invoke()
     }
 
     fun onLocationChanged(location: Location) {

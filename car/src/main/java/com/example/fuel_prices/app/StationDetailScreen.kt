@@ -7,7 +7,8 @@ import com.example.fuel_prices.data.StationWithDistance
 
 class StationDetailScreen(
     carContext: CarContext,
-    private val stationWithDistance: StationWithDistance
+    private val stationWithDistance: StationWithDistance,
+    private val viewModel: StationsViewModel
 ) : Screen(carContext) {
 
     override fun onGetTemplate(): Template {
@@ -49,6 +50,19 @@ class StationDetailScreen(
                 .addText(distanceStr)
                 .build()
         )
+
+        // "Show on Map" — ustawia wybraną stację jako kotwicę mapy i wraca do MainMapScreen.
+        // Działa zarówno na emulatorze jak i na prawdziwym urządzeniu bez potrzeby
+        // zewnętrznej aplikacji nawigacyjnej.
+        val showOnMapAction = Action.Builder()
+            .setTitle("Show on Map")
+            .setOnClickListener {
+                viewModel.setSelectedStation(station)
+                screenManager.pop()
+            }
+            .build()
+
+        paneBuilder.addAction(showOnMapAction)
 
         return PaneTemplate.Builder(paneBuilder.build())
             .setTitle("${station.brand} - ${station.name}")
