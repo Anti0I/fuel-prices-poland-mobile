@@ -79,7 +79,7 @@ class LocationHelper(private val context: Context) {
 
         // Set up continuous updates
         val locationRequest = LocationRequest.Builder(
-            Priority.PRIORITY_BALANCED_POWER_ACCURACY,
+            Priority.PRIORITY_HIGH_ACCURACY,
             UPDATE_INTERVAL_MS
         )
             .setMinUpdateIntervalMillis(FASTEST_INTERVAL_MS)

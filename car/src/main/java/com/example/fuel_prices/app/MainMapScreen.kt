@@ -75,7 +75,7 @@ class MainMapScreen(
             itemListBuilder.addItem(row)
         }
 
-        // Action strip with Filter and My Location buttons
+        // Action strip with Filter and Center buttons
         val actionStrip = ActionStrip.Builder()
             .addAction(
                 Action.Builder()
@@ -87,13 +87,13 @@ class MainMapScreen(
             )
             .addAction(
                 Action.Builder()
-                    .setTitle("My Location")
+                    .setTitle("Center")
                     .setOnClickListener {
-                        viewModel.setSelectedStation(null) // czyści zaznaczenie
+                        viewModel.setSelectedStation(null)
                         viewModel.startLocationUpdates()
                         CarToast.makeText(
                             carContext,
-                            "Updating location...",
+                            "Centering on your location...",
                             CarToast.LENGTH_SHORT
                         ).show()
                         invalidate()

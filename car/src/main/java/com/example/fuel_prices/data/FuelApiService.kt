@@ -1,7 +1,6 @@
 package com.example.fuel_prices.data
 
 import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
@@ -36,7 +35,7 @@ class FuelApiService(
         lat: Double,
         lng: Double,
         radius: Double = 50.0,
-        limit: Int = 6
+        limit: Int = 15
     ): List<Station> {
         val url = baseUrl.newBuilder()
             .addPathSegment("stations")
@@ -49,42 +48,6 @@ class FuelApiService(
 
         val response = executeRequest<StationsResponse>(url, StationsResponse::class.java)
         return response.stations
-    }
-
-    /**
-     * Fetches filtered and sorted stations.
-     * Maps to: GET /stations?fuel=...&brand=...&sort_by=...
-     */
-    fun fetchFilteredStations(
-        fuel: String? = null,
-        brand: String? = null,
-        sortBy: String? = null,
-        city: String? = null,
-        voivodeship: String? = null
-    ): List<Station> {
-        val urlBuilder = baseUrl.newBuilder()
-            .addPathSegment("stations")
-
-        fuel?.let { urlBuilder.addQueryParameter("fuel", it) }
-        brand?.let { urlBuilder.addQueryParameter("brand", it) }
-        sortBy?.let { urlBuilder.addQueryParameter("sort_by", it) }
-        city?.let { urlBuilder.addQueryParameter("city", it) }
-        voivodeship?.let { urlBuilder.addQueryParameter("voivodeship", it) }
-
-        val response = executeRequest<StationsResponse>(urlBuilder.build(), StationsResponse::class.java)
-        return response.stations
-    }
-
-    /**
-     * Fetches available filter options (cities, voivodeships, brands).
-     * Maps to: GET /filters
-     */
-    fun fetchFilters(): FiltersResponse {
-        val url = baseUrl.newBuilder()
-            .addPathSegment("filters")
-            .build()
-
-        return executeRequest(url, FiltersResponse::class.java)
     }
 
     /**

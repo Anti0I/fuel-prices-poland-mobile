@@ -26,6 +26,7 @@ class StationsViewModel(
 
     companion object {
         private const val TAG = "StationsViewModel"
+        private const val STATIONS_LIMIT = 15
     }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -103,7 +104,7 @@ class StationsViewModel(
                         lat = loc.latitude,
                         lng = loc.longitude,
                         fuelType = filter,
-                        limit = 6
+                        limit = STATIONS_LIMIT
                     )
                 }
 

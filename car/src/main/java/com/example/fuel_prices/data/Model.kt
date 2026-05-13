@@ -4,8 +4,6 @@ package com.example.fuel_prices.data
  * Response wrapper for /stations and /stations/near endpoints.
  */
 data class StationsResponse(
-    val count: Int,
-    val currency: String? = null,
     val stations: List<Station>
 )
 
@@ -16,12 +14,9 @@ data class StationsResponse(
 data class Station(
     val name: String,
     val brand: String,
-    val city: String? = null,
-    val voivodeship: String? = null,
     val lat: Double,
     val lng: Double,
     val prices: Prices,
-    val updated_at: String,
     val distance_km: Double? = null
 )
 
@@ -29,16 +24,6 @@ data class Prices(
     val pb95: Double?,
     val diesel: Double?,
     val lpg: Double?
-)
-
-/**
- * Response from the /filters endpoint.
- * Contains all distinct values available for filtering.
- */
-data class FiltersResponse(
-    val cities: List<String>,
-    val voivodeships: List<String>,
-    val brands: List<String>
 )
 
 enum class FuelType {

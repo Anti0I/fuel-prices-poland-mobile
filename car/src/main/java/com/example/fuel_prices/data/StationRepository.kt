@@ -35,23 +35,6 @@ class StationRepository(
     }
 
     /**
-     * Returns filtered stations from the API, optionally filtered
-     * by fuel type and brand, sorted by price ascending.
-     */
-    fun getFilteredStations(fuelType: FuelType?, brand: String?): List<Station> {
-        return try {
-            api.fetchFilteredStations(
-                fuel = fuelType?.toApiParam(),
-                brand = brand,
-                sortBy = if (fuelType != null) "price_asc" else null
-            ).take(6)
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to fetch filtered stations", e)
-            emptyList()
-        }
-    }
-
-    /**
      * Returns stations sorted by distance from the given coordinates,
      * optionally filtered by fuel type, limited to [limit] results.
      * Uses the /stations/near API endpoint.
@@ -60,7 +43,7 @@ class StationRepository(
         lat: Double,
         lng: Double,
         fuelType: FuelType?,
-        limit: Int = 6
+        limit: Int = 20
     ): List<StationWithDistance> {
         return try {
             val stations = api.fetchStationsNear(
@@ -100,18 +83,6 @@ class StationRepository(
         } catch (e: Exception) {
             Log.e(TAG, "Failed to fetch nearby stations", e)
             emptyList()
-        }
-    }
-
-    /**
-     * Fetches available filter options from the API.
-     */
-    fun getFilters(): FiltersResponse? {
-        return try {
-            api.fetchFilters()
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to fetch filters", e)
-            null
         }
     }
 }
